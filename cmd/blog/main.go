@@ -1,7 +1,17 @@
 package main
 
-import "fmt"
+import (
+	"os"
+
+	_ "go.uber.org/automaxprocs"
+
+	"github.com/sjxiang/blog/internal/blog"
+)
 
 func main() {
-	fmt.Println("hello")
+	// 挺鸡肋的
+	command := blog.NewBlogCommand()
+	if err := command.Execute(); err != nil {
+		os.Exit(1)
+	}
 }
