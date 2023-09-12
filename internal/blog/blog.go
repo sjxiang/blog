@@ -35,10 +35,10 @@ func NewBlogCommand() *cobra.Command {
 	}
 
 	// 调用链路：Execute -> init -> Run
-	cobra.OnInitialize()
+	cobra.OnInitialize(loadEnv)
 
 	// 选项，e.g. --config=xxx
-	cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "./configs/dev.yaml", "miniblog 的配置文件路径，若字符串为空，则为无配置文件。")
+	cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "./configs/.env", "miniblog 的配置文件路径，若字符串为空，则为无配置文件。")
 
 	return cmd
 }
@@ -47,6 +47,10 @@ var cfgFile string
 
 // run 函数是实际的业务代码入口函数.
 func run() error {
-	fmt.Println(cfgFile)
+	var (
+		dbName = env("DB_NAME", "blog")
+	)
+
+	fmt.Println(dbName)
 	return nil
 }

@@ -38,5 +38,9 @@ print: # 打印变量
 	@echo $(ROOT_DIR)
         
 
+.PHONY: bare
+bare: build # 裸奔
+	@./_output/blog --config=./configs/dev.env
+        
 # tips
 # 空格和 tab，有误区，真的会谢
