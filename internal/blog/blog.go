@@ -2,7 +2,10 @@ package blog
 
 import (
 	"fmt"
+	"strconv"
+	// "strconv"
 
+	"github.com/sjxiang/blog/pkg/zop"
 	"github.com/spf13/cobra"
 )
 
@@ -20,6 +23,7 @@ func NewBlogCommand() *cobra.Command {
 		SilenceUsage: true,
 		// 指定调用 cmd.Execute() 时，执行的 Run 函数，函数执行失败会返回错误信息
 		RunE: func(cmd *cobra.Command, args []string) error {
+
 			return run()
 		},
 		// 这里设置命令运行时，不需要指定命令行参数
@@ -47,10 +51,32 @@ var cfgFile string
 
 // run 函数是实际的业务代码入口函数.
 func run() error {
+	
 	var (
-		dbName = env("DB_NAME", "blog")
+		logDisableCaller, _     = strconv.ParseBool(env("LOG_DISABLE_CALLER", ""))
+		logDisableStacktrace, _ = strconv.ParseBool(env("LOG_DISABLE_STACKTRACE", ""))
+		logLevel                = env("LOG_LEVEL", "")
+		logFormat               = env("LOG_FORMAT", "")
+		logOutputPaths          = env("LOG_OUTPUT_PATHS", "")
 	)
 
-	fmt.Println(dbName)
+	// var (
+	// 	dbUser = env("DB_USER", "")
+	// 	dbPass = env("DN_PASS", "")
+	// 	dbHost = env("DB_HOST", "")
+	// 	dbPort = env("DB_PORT", "")	
+	// 	dbName = env("DB_NAME", "")	
+	// 	dbMaxIdleConnection, _     = strconv.Atoi(env("DB_MAX_IDLE_CONNECTION", ""))
+	// 	dbMaxOpenConnection, _     = strconv.Atoi(env("DB_MAX_OPEN_CONNECTION", ""))
+	// 	dbMaxConnectionLifeTime, _ = strconv.ParseFloat(env("DB_MAX_CONNECTION_LIFE_TIME", ""),  64)
+	// 	dbLogLevel, _              = strconv.Atoi(env("DB_LOG_LEVEL", ""))
+	// )
+	
+	// 初始化日志
+	zop.Init(logOptions(logDisableCaller, logDisableStacktrace, logLevel, logFormat, logOutputPaths))
+	defer zop.Sync()  
+
+	zop.Infow("测试", "123")
 	return nil
 }
+

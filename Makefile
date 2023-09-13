@@ -39,8 +39,8 @@ print: # 打印变量
         
 
 .PHONY: bare
-bare: build # 裸奔
-	@./_output/blog --config=./configs/dev.env
+bare: build # 裸奔运行
+	@./_output/blog --config=./configs/.env
         
 # tips
 # 空格和 tab，有误区，真的会谢

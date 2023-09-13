@@ -6,6 +6,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
+
+	"github.com/sjxiang/blog/pkg/zop"
 )
 
 func loadEnv() {
@@ -17,7 +19,7 @@ func loadEnv() {
 		cobra.CheckErr(err)
 	}
 
-	// 打印 viper 当前使用的配置文件，方便 Debug.
+	// 打印当前使用的配置文件，方便 Debug.
 	fmt.Fprintln(os.Stdout, "Using config file:", cfgFile)
 }
 
@@ -27,4 +29,15 @@ func env(key, fallbackValue string) string {
 		return fallbackValue
 	}
 	return s
+}
+
+
+func logOptions(logDisableCaller, logDisableStacktrace bool, logLevel, logFormat, logOutputPaths string) *zop.Options {
+	return &zop.Options{
+		DisableCaller:     logDisableCaller,
+		DisableStacktrace: logDisableCaller,
+		Level:             logLevel,
+		Format:            logFormat,
+		OutputPaths:       []string{"stdout", logOutputPaths},
+	}
 }
