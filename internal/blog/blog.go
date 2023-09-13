@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 
+	"github.com/sjxiang/blog/pkg/middleware"
 	"github.com/sjxiang/blog/pkg/zop"
 )
 
@@ -92,6 +93,11 @@ func run() error {
 	gin.SetMode(runMode)
 
 	r := gin.New()
+	
+	// 注册全局中间件
+	mws := []gin.HandlerFunc{gin.Recovery(), middleware.RequestID(), middleware.CorsV1()}
+	r.Use(mws...)
+
 
 	r.NoRoute(func(ctx *gin.Context) {
 		if strings.HasPrefix(ctx.Request.RequestURI, "/v1") || strings.HasPrefix(ctx.Request.RequestURI, "/api") {
@@ -106,6 +112,8 @@ func run() error {
 	})
 
 	r.GET("/healthz", func(ctx *gin.Context) {
+		zop.C(ctx).Infow("健康检查被调用")
+
 		ctx.JSON(http.StatusOK, gin.H{
 			"status": "ok",
 		})
@@ -145,9 +153,7 @@ func run() error {
         return err
     }
 	
-	
-	zop.Infow("over ...")
-	
+
 	return nil
 }
 

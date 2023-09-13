@@ -10,35 +10,6 @@
 │   ├── miniblog.sql # 数据库初始化 SQL
 │   ├── miniblog.yaml # miniblog 配置文件
 │   └── nginx.conf # Nginx 配置
-├── docs # 项目文档
-│   ├── devel # 开发文档
-│   │   ├── en-US # 英文文档
-│   │   └── zh-CN # 中文文档
-│   │       ├── architecture.md # miniblog 架构介绍
-│   │       ├── conversions # 规范文档存放目录
-│   │       │   ├── api.md # 接口规范
-│   │       │   ├── commit.md # Commit 规范
-│   │       │   ├── directory.md # 目录结构规范
-│   │       │   ├── error_code.md # 错误码规范
-│   │       │   ├── go_code.md # 代码规范
-│   │       │   ├── log.md # 日志规范
-│   │       │   └── version.md # 版本规范
-│   │       └── README.md
-│   ├── guide # 用户文档
-│   │   ├── en-US # 英文文档
-│   │   └── zh-CN # 中文文档
-│   │       ├── announcements.md # 动态与公告
-│   │       ├── best-practice # 最佳实践
-│   │       ├── faq # 常见问题
-│   │       ├── installation # 安装指南
-│   │       ├── introduction # 产品介绍
-│   │       ├── operation-guide # 操作指南
-│   │       ├── quickstart # 快速入门
-│   │       └── README.md
-│   └── images # 项目图片存放目录
-├── examples # 示例源码
-├── go.mod
-├── go.sum
 ├── init # Systemd Unit 文件保存目录
 │   ├── miniblog.service # miniblog systemd unit
 ├── internal # 内部代码保存目录，这里面的代码不能被外部程序引用
@@ -80,8 +51,6 @@
 │       │   ├── header.go # 指定 HTTP Response Header
 │       │   └── requestid.go # 请求 / 返回头中添加 X-Request-ID
 │       └── model # GORM Model
-├── LICENSE # 声明代码所遵循的开源协议
-├── Makefile # Makefile 文件，一般大型软件系统都是采用 make 来作为编译工具
 ├── _output # 临时文件存放目录
 ├── pkg # 可供外部程序直接使用的 Go 包存放目录
 │   ├── api # REST API 接口定义存放目录
@@ -94,8 +63,6 @@
 │   ├── util # 工具类包存放目录
 │   │   └── id # id 包，用来生成唯一短 ID
 │   └── version # version 包，用来保存 / 输出版本信息
-├── README-en.md # 英文 README
-├── README.md # 中文 README
 ├── scripts # 脚本文件
 │   ├── boilerplate.txt # 指定版权头信息
 │   ├── coverage.awk # awk 脚本，用来计算覆盖率

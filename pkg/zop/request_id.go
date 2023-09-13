@@ -21,7 +21,7 @@ func (l *zapLoggerImpl) C(ctx context.Context) *zapLoggerImpl {
 	return lc
 }
 
-// clone 深度拷贝 zapLogger（用户打上烙印，服务器白纸一张，可不能混淆；新建拷贝一份）
+// clone 深度拷贝 zapLogger（新建拷贝一份 logger，携带用户的 uuid，防止混淆；旧的 logger 没影响）
 func (l *zapLoggerImpl) clone() *zapLoggerImpl {
 	lc := *l
 	return &lc
