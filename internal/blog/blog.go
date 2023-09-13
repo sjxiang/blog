@@ -15,7 +15,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 
+	"github.com/sjxiang/blog/pkg/errno"
 	"github.com/sjxiang/blog/pkg/middleware"
+	"github.com/sjxiang/blog/pkg/serializer"
 	"github.com/sjxiang/blog/pkg/zop"
 )
 
@@ -100,23 +102,21 @@ func run() error {
 
 
 	r.NoRoute(func(ctx *gin.Context) {
+		// 稍微沾点边，那就给点提示
 		if strings.HasPrefix(ctx.Request.RequestURI, "/v1") || strings.HasPrefix(ctx.Request.RequestURI, "/api") {
-			// controller.RelayNotFound(c)
-			return
+			err := errno.ErrPageNotFound.WithMessage(
+				fmt.Sprintf("Invalid URL (%s %s)", ctx.Request.Method, ctx.Request.URL.Path))
+
+			serializer.BuildResponse(ctx, err, nil)
 		}
 
-		ctx.JSON(http.StatusOK, gin.H{
-			"code":    10003, 
-			"message": "Page not found", 
-		})
+		// 否则，给爷爬
 	})
 
 	r.GET("/healthz", func(ctx *gin.Context) {
 		zop.C(ctx).Infow("健康检查被调用")
 
-		ctx.JSON(http.StatusOK, gin.H{
-			"status": "ok",
-		})
+		serializer.BuildResponse(ctx, nil, map[string]string{"status": "ok"})
 	})
 
 	// 构建 server

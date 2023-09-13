@@ -4,8 +4,8 @@
 │   └── openapi
 │       └── openapi.yaml # OpenAPI 3.0 API 接口文档
 ├── cmd # main 文件存放目录
-│   └── miniblog
-│       └── miniblog.go
+│   └── blog
+│       └── blog.go
 ├── configs # 配置文件存放目录
 │   ├── miniblog.sql # 数据库初始化 SQL
 │   ├── miniblog.yaml # miniblog 配置文件
