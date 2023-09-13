@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -59,10 +60,6 @@ var cfgFile string
 
 // run 函数是实际的业务代码入口函数.
 func run() error {
-
-	// 优雅关停
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
-	defer stop()
 
 	var (
 		logDisableCaller, _     = strconv.ParseBool(env("LOG_DISABLE_CALLER", ""))
@@ -122,27 +119,34 @@ func run() error {
 
 		
 	go func() {
-		<-ctx.Done()
-		zop.Infow("shutting down server")
-
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-		defer cancel()
-
-		err := httpSrv.Shutdown(ctx)
-		if err != nil {
-			zop.Errorw("shutdown server", "err", err)
-			os.Exit(1)
+		if err := httpSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			zop.Fatalw("listen and serve: %w", err) 
 		}
 	}()
 
+	// 方便排障
 	zop.Infow("starting server", "addr", httpSrv.Addr)
 
-	 
-	err := httpSrv.ListenAndServe()
-	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		// zop.Fatal("listen and serve: %w", err)  // 直接崩了，啥细节也看不到
-		return fmt.Errorf("listen and serve: %w", err)
-	}
+    quit := make(chan os.Signal, 1)
+    // kill 默认会发送 syscall.SIGTERM 信号
+    // kill -2 发送 syscall.SIGINT 信号，我们常用的 CTRL + C 就是触发系统 SIGINT 信号
+    // kill -9 发送 syscall.SIGKILL 信号，但是不能被捕获，所以不需要添加它
+    signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM) // 此处不会阻塞
+    <-quit                                               // 阻塞在此，当接收到上述两种信号时才会往下执行
+    zop.Infow("Shutting down server ...")
+
+	// 10s，结束扫尾工作
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+
+	// 通知 goroutine，风紧扯呼
+    if err := httpSrv.Shutdown(ctx); err != nil {
+		zop.Errorw("shutdown server", "err", err)
+        return err
+    }
+	
+	
+	zop.Infow("over ...")
 	
 	return nil
 }
