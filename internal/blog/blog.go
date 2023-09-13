@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 
+	"github.com/sjxiang/blog/pkg/db"
 	"github.com/sjxiang/blog/pkg/errno"
 	"github.com/sjxiang/blog/pkg/middleware"
 	"github.com/sjxiang/blog/pkg/serializer"
@@ -73,23 +74,23 @@ func run() error {
 
 		runMode                 = env("RUN_MODE", "")
 		port, _                 = strconv.Atoi(env("PORT", ""))
+	
+		dbDataSource               = env("DB_DATA_SOURCE", "")
+		dbMaxIdleConnection, _     = strconv.Atoi(env("DB_MAX_IDLE_CONNECTION", ""))
+		dbMaxOpenConnection, _     = strconv.Atoi(env("DB_MAX_OPEN_CONNECTION", ""))
+		dbMaxConnectionLifeTime, _ = strconv.Atoi(env("DB_MAX_CONNECTION_LIFE_TIME", ""))
+		dbLogLevel, _              = strconv.Atoi(env("DB_LOG_LEVEL", ""))
 	)
-
-	// var (
-	// 	dbUser = env("DB_USER", "")
-	// 	dbPass = env("DN_PASS", "")
-	// 	dbHost = env("DB_HOST", "")
-	// 	dbPort = env("DB_PORT", "")	
-	// 	dbName = env("DB_NAME", "")	
-	// 	dbMaxIdleConnection, _     = strconv.Atoi(env("DB_MAX_IDLE_CONNECTION", ""))
-	// 	dbMaxOpenConnection, _     = strconv.Atoi(env("DB_MAX_OPEN_CONNECTION", ""))
-	// 	dbMaxConnectionLifeTime, _ = strconv.ParseFloat(env("DB_MAX_CONNECTION_LIFE_TIME", ""),  64)
-	// 	dbLogLevel, _              = strconv.Atoi(env("DB_LOG_LEVEL", ""))
-	// )
 	
 	// 初始化日志
 	zop.Init(logOptions(logDisableCaller, logDisableStacktrace, logLevel, logFormat, logOutputPaths))
 	defer zop.Sync()  
+
+	// 初始化 db
+	opts := mysqlOptions(dbDataSource, dbMaxIdleConnection, dbMaxOpenConnection, dbMaxConnectionLifeTime, dbLogLevel)
+	db, err := db.NewMySQL(opts)
+	
+
 
 	// 设置 Gin 模式
 	gin.SetMode(runMode)

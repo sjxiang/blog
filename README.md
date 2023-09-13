@@ -24,3 +24,5 @@
     删除博客
     批量删除博客
 ```
+
+db2struct --gorm --no-json -H 172.21.0.3 -d blog -t user --package model --struct UserM -u root -p '123456' --target=user.go

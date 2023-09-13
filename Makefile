@@ -41,6 +41,30 @@ print: # 打印变量
 .PHONY: bare
 bare: build # 裸奔运行
 	@./_output/blog --config=./configs/.env
-        
+    
+
+.PHONY: up
+up:
+	@docker-compose up -d
+
+.PHONY: down
+down:
+	@docker-compose -f ./docker-compose.yml down
+
+.PHONY: net
+net:
+	@docker inspect mysql | grep IPAddress
+
+.PHONY: db
+db:
+	@docker exec -it mysql bash 
+# mysql -uroot -p123456
+
+.PHONY: redis
+redis:
+	@docker exec -it redis bash
+# redis-cli
+
+
 # tips
 # 空格和 tab，有误区，真的会谢

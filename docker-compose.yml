@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+
+  redis:
+    container_name: redis
+    image: docker.io/bitnami/redis:7.0
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - '6379:6379'
+
+  mysql8:
+    container_name: mysql
+    image: mysql:8.0.29
+    restart: always
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+    volumes:
+      # MySQL 官方镜像会在容器启动时，自动执行 /docker-entrypoint-initdb.d 文件夹下的 SQL 脚本，从而完成数据库初始化
+      - ./scripts/mysql/:/docker-entrypoint-initdb.d/
+    ports:
+      # 映射为端口 13306 
+      - "13306:3306"

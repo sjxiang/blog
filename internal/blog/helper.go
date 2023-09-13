@@ -3,10 +3,12 @@ package blog
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 
+	"github.com/sjxiang/blog/pkg/db"
 	"github.com/sjxiang/blog/pkg/zop"
 )
 
@@ -39,5 +41,17 @@ func logOptions(logDisableCaller, logDisableStacktrace bool, logLevel, logFormat
 		Level:             logLevel,
 		Format:            logFormat,
 		OutputPaths:       []string{"stdout", logOutputPaths},
+	}
+}
+
+
+func mysqlOptions(dbDataSource string, dbMaxIdleConnections, dbMaxOpenConnections, dbMaxConnectionLifeTime, dbLoglevel int,  ) *db.MySQLOptions {
+	return &db.MySQLOptions{
+		DataSource:            dbDataSource,
+		MaxIdleConnections:    dbMaxIdleConnections,
+		MaxOpenConnections:    dbMaxOpenConnections,
+		MaxConnectionLifeTime: time.Duration(dbMaxConnectionLifeTime),
+		LogLevel:              dbLoglevel,
+
 	}
 }
