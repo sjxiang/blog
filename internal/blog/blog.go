@@ -1,12 +1,20 @@
 package blog
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
 	"strconv"
-	// "strconv"
+	"strings"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/cobra"
 
 	"github.com/sjxiang/blog/pkg/zop"
-	"github.com/spf13/cobra"
 )
 
 // NewBlogCommand 创建一个 *cobra.Command 对象. 之后，可以使用 Command 对象的 Execute 方法来启动应用程序.
@@ -51,13 +59,20 @@ var cfgFile string
 
 // run 函数是实际的业务代码入口函数.
 func run() error {
-	
+
+	// 优雅关停
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
+	defer stop()
+
 	var (
 		logDisableCaller, _     = strconv.ParseBool(env("LOG_DISABLE_CALLER", ""))
 		logDisableStacktrace, _ = strconv.ParseBool(env("LOG_DISABLE_STACKTRACE", ""))
 		logLevel                = env("LOG_LEVEL", "")
 		logFormat               = env("LOG_FORMAT", "")
 		logOutputPaths          = env("LOG_OUTPUT_PATHS", "")
+
+		runMode                 = env("RUN_MODE", "")
+		port, _                 = strconv.Atoi(env("PORT", ""))
 	)
 
 	// var (
@@ -76,7 +91,59 @@ func run() error {
 	zop.Init(logOptions(logDisableCaller, logDisableStacktrace, logLevel, logFormat, logOutputPaths))
 	defer zop.Sync()  
 
-	zop.Infow("测试", "123")
+	// 设置 Gin 模式
+	gin.SetMode(runMode)
+
+	r := gin.New()
+
+	r.NoRoute(func(ctx *gin.Context) {
+		if strings.HasPrefix(ctx.Request.RequestURI, "/v1") || strings.HasPrefix(ctx.Request.RequestURI, "/api") {
+			// controller.RelayNotFound(c)
+			return
+		}
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"code":    10003, 
+			"message": "Page not found", 
+		})
+	})
+
+	r.GET("/healthz", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+		})
+	})
+
+	// 构建 server
+	httpSrv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: r,
+	}
+
+		
+	go func() {
+		<-ctx.Done()
+		zop.Infow("shutting down server")
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+
+		err := httpSrv.Shutdown(ctx)
+		if err != nil {
+			zop.Errorw("shutdown server", "err", err)
+			os.Exit(1)
+		}
+	}()
+
+	zop.Infow("starting server", "addr", httpSrv.Addr)
+
+	 
+	err := httpSrv.ListenAndServe()
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		// zop.Fatal("listen and serve: %w", err)  // 直接崩了，啥细节也看不到
+		return fmt.Errorf("listen and serve: %w", err)
+	}
+	
 	return nil
 }
 
