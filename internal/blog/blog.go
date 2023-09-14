@@ -8,17 +8,15 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"strings"
 	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 
+	"github.com/sjxiang/blog/internal/blog/store"
 	"github.com/sjxiang/blog/pkg/db"
-	"github.com/sjxiang/blog/pkg/errno"
 	"github.com/sjxiang/blog/pkg/middleware"
-	"github.com/sjxiang/blog/pkg/serializer"
 	"github.com/sjxiang/blog/pkg/zop"
 )
 
@@ -55,7 +53,7 @@ func NewBlogCommand() *cobra.Command {
 	cobra.OnInitialize(loadEnv)
 
 	// 选项，e.g. --config=xxx
-	cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "./configs/.env", "miniblog 的配置文件路径，若字符串为空，则为无配置文件。")
+	cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "./config/.env", "miniblog 的配置文件路径，若字符串为空，则为无配置文件。")
 
 	return cmd
 }
@@ -64,6 +62,8 @@ var cfgFile string
 
 // run 函数是实际的业务代码入口函数.
 func run() error {
+
+	// 初始化环境变量 env
 
 	var (
 		logDisableCaller, _     = strconv.ParseBool(env("LOG_DISABLE_CALLER", ""))
@@ -82,16 +82,20 @@ func run() error {
 		dbLogLevel, _              = strconv.Atoi(env("DB_LOG_LEVEL", ""))
 	)
 	
-	// 初始化日志
+	// 初始化日志 log
 	zop.Init(logOptions(logDisableCaller, logDisableStacktrace, logLevel, logFormat, logOutputPaths))
 	defer zop.Sync()  
 
-	// 初始化 db
-	opts := mysqlOptions(dbDataSource, dbMaxIdleConnection, dbMaxOpenConnection, dbMaxConnectionLifeTime, dbLogLevel)
-	db, err := db.NewMySQL(opts)
+	// 初始化数据库 db
+	dbOptions := mysqlOptions(dbDataSource, dbMaxIdleConnection, dbMaxOpenConnection, dbMaxConnectionLifeTime, dbLogLevel)
+	db, err := db.NewMySQL(dbOptions)
+	if err != nil {
+		return err
+	}
 	
-
-
+	// 构建 store（包变量有点恶心）
+	store := store.NewStore(db)
+	
 	// 设置 Gin 模式
 	gin.SetMode(runMode)
 
@@ -101,25 +105,11 @@ func run() error {
 	mws := []gin.HandlerFunc{gin.Recovery(), middleware.RequestID(), middleware.CorsV1()}
 	r.Use(mws...)
 
-
-	r.NoRoute(func(ctx *gin.Context) {
-		// 稍微沾点边，那就给点提示
-		if strings.HasPrefix(ctx.Request.RequestURI, "/v1") || strings.HasPrefix(ctx.Request.RequestURI, "/api") {
-			err := errno.ErrPageNotFound.WithMessage(
-				fmt.Sprintf("Invalid URL (%s %s)", ctx.Request.Method, ctx.Request.URL.Path))
-
-			serializer.BuildResponse(ctx, err, nil)
-		}
-
-		// 否则，给爷爬
-	})
-
-	r.GET("/healthz", func(ctx *gin.Context) {
-		zop.C(ctx).Infow("健康检查被调用")
-
-		serializer.BuildResponse(ctx, nil, map[string]string{"status": "ok"})
-	})
-
+	// 注册路由
+	if err := setupRoute(store, r); err != nil {
+		return err
+	}
+	
 	// 构建 server
 	httpSrv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),

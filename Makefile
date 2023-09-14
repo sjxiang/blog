@@ -40,7 +40,7 @@ print: # 打印变量
 
 .PHONY: bare
 bare: build # 裸奔运行
-	@./_output/blog --config=./configs/.env
+	@./_output/blog --config=./config/.env
     
 
 .PHONY: up

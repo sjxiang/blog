@@ -19,7 +19,7 @@ services:
       MYSQL_ROOT_PASSWORD: 123456
     volumes:
       # MySQL 官方镜像会在容器启动时，自动执行 /docker-entrypoint-initdb.d 文件夹下的 SQL 脚本，从而完成数据库初始化
-      - ./scripts/mysql/:/docker-entrypoint-initdb.d/
+      - ./script/mysql/:/docker-entrypoint-initdb.d/
     ports:
       # 映射为端口 13306 
       - "13306:3306"
