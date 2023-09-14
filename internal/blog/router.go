@@ -9,6 +9,7 @@ import (
 	"github.com/sjxiang/blog/internal/blog/controller/v1/user"
 	"github.com/sjxiang/blog/internal/blog/store"
 	"github.com/sjxiang/blog/pkg/errno"
+	"github.com/sjxiang/blog/pkg/middleware"
 	"github.com/sjxiang/blog/pkg/serializer"
 	"github.com/sjxiang/blog/pkg/zop"
 )
@@ -16,17 +17,23 @@ import (
 
 func setupRoute(store store.IStore, router *gin.Engine) error {
 	
-	// 注册业务路由
+	// 构建 controller（依赖倒置）
 	uc := user.New(store)
 	// pc
 	
+
+	// 注册业务路由
+	router.POST("/login", uc.Login)
+
 	// 创建 v1 路由分组
 	v1 := router.Group("/v1")
-	{
+	{	
 		// 创建 users 路由分组
 		userv1 := v1.Group("/users")
-		{
-			userv1.POST("", uc.Create)
+		{	
+			userv1.POST("", uc.Create)  // 创建用户
+			userv1.PUT("/:name/change-password", uc.ChangePassword)
+			userv1.Use(middleware.Authn())
 		}
 	}
 

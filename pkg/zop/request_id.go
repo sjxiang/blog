@@ -17,6 +17,9 @@ func (l *zapLoggerImpl) C(ctx context.Context) *zapLoggerImpl {
 	if requestID := ctx.Value("X-Request-ID"); requestID != nil {
 		lc.z = lc.z.With(zap.Any("X-Request-ID", requestID))
 	}
+	if userId := ctx.Value("X-Username"); userId != nil {
+		lc.z = lc.z.With(zap.Any("X-Username", userId))
+	}
 
 	return lc
 }

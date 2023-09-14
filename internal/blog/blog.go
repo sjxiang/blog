@@ -16,6 +16,7 @@ import (
 
 	"github.com/sjxiang/blog/internal/blog/store"
 	"github.com/sjxiang/blog/pkg/db"
+	"github.com/sjxiang/blog/pkg/jwt"
 	"github.com/sjxiang/blog/pkg/middleware"
 	"github.com/sjxiang/blog/pkg/zop"
 )
@@ -80,7 +81,12 @@ func run() error {
 		dbMaxOpenConnection, _     = strconv.Atoi(env("DB_MAX_OPEN_CONNECTION", ""))
 		dbMaxConnectionLifeTime, _ = strconv.Atoi(env("DB_MAX_CONNECTION_LIFE_TIME", ""))
 		dbLogLevel, _              = strconv.Atoi(env("DB_LOG_LEVEL", ""))
+
+		jwtSecret                  = env("JWT_SECRET", "")
 	)
+
+	// 设置 token 的签发密钥，用于生成和提取
+	jwt.Init(jwtSecret)
 	
 	// 初始化日志 log
 	zop.Init(logOptions(logDisableCaller, logDisableStacktrace, logLevel, logFormat, logOutputPaths))
@@ -93,9 +99,10 @@ func run() error {
 		return err
 	}
 	
-	// 构建 store（包变量有点恶心）
+	// 构建 store（包变量有点恶心，为了复用，忍了）
 	store := store.NewStore(db)
 	
+
 	// 设置 Gin 模式
 	gin.SetMode(runMode)
 

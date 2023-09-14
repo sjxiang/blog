@@ -23,7 +23,7 @@ func New(ds store.IStore) *UserController {
 }
 
 func (ctrl *UserController) Create(c *gin.Context) {
-	zop.C(c).Infow("Create user called")
+	zop.C(c).Infow("创建用户")
 	
 	// 参数解析
 	var req v1.CreateUserRequest
@@ -46,3 +46,5 @@ func (ctrl *UserController) Create(c *gin.Context) {
 	// 返回响应
 	serializer.BuildResponse(c, nil, nil)
 }
+
+

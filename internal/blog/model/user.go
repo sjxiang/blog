@@ -35,4 +35,6 @@ func (u *UserM) BeforeCreate(tx *gorm.DB) (err error) {
     return nil
 }
 
+
+
 // db2struct --gorm --no-json -H 172.21.0.3 -d blog -t user --package model --struct UserM -u root -p '123456' --target=user.go
