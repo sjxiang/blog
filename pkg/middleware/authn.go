@@ -15,6 +15,7 @@ var ErrMissingHeader = errors.New("the length of the `Authorization` header is z
 // 认证
 func Authn() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		
 		userId, err := parseRequest(c)
 		if err != nil {
 			serializer.BuildResponse(c, err, nil)

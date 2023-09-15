@@ -8,6 +8,7 @@ import (
 
 	"github.com/sjxiang/blog/internal/blog/controller/v1/user"
 	"github.com/sjxiang/blog/internal/blog/store"
+	"github.com/sjxiang/blog/pkg/auth"
 	"github.com/sjxiang/blog/pkg/errno"
 	"github.com/sjxiang/blog/pkg/middleware"
 	"github.com/sjxiang/blog/pkg/serializer"
@@ -15,10 +16,10 @@ import (
 )
 
 
-func setupRoute(store store.IStore, router *gin.Engine) error {
+func setupRoute(authz *auth.Authz, store store.IStore, router *gin.Engine) error {
 	
 	// 构建 controller（依赖倒置）
-	uc := user.New(store)
+	uc := user.New(authz, store)
 	// pc
 	
 
@@ -31,9 +32,15 @@ func setupRoute(store store.IStore, router *gin.Engine) error {
 		// 创建 users 路由分组
 		userv1 := v1.Group("/users")
 		{	
-			userv1.POST("", uc.Create)  // 创建用户
-			userv1.PUT("/:name/change-password", uc.ChangePassword)
-			userv1.Use(middleware.Authn())
+			userv1.POST("", uc.Create)                               // 创建用户
+			userv1.PUT("/:name/change-password", uc.ChangePassword)  // 修改用户密码
+			
+			userv1.Use(middleware.Authn(), middleware.Authz(authz))  // 牛批，仅对后面注册的路由起作用，横插一杠
+		
+			userv1.GET("/:name", uc.Get)        // 获取用户详情
+			userv1.PUT("/:name", uc.Update)     // 更新用户
+			userv1.GET("", uc.List)             // 列出用户列表，只有 root 用户才能访问
+			userv1.DELETE("/:name", uc.Delete)  // 删除用户
 		}
 	}
 

@@ -13,6 +13,8 @@ type UserStore interface {
     Create(ctx context.Context, user *model.UserM) error
     Get(ctx context.Context, username string) (*model.UserM, error)
     Update(ctx context.Context, user *model.UserM) error
+    List(ctx context.Context, username string, offset, limit int) (int64, []*model.PostM, error)
+    Delete(ctx context.Context, username string, postIDs []string) error
 }
 
 // UserStore 接口的实现.
@@ -45,4 +47,12 @@ func (u *userStoreImpl) Get(ctx context.Context, username string) (*model.UserM,
 // Update 更新一条 user 数据库记录.
 func (u *userStoreImpl) Update(ctx context.Context, user *model.UserM) error {
     return u.db.Save(user).Error
+}
+
+func (u *userStoreImpl) List(ctx context.Context, username string, offset, limit int) (int64, []*model.PostM, error) {
+    panic("")
+}
+
+func (u *userStoreImpl) Delete(ctx context.Context, username string, postIDs []string) error {
+    panic("")
 }

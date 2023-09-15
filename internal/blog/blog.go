@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/sjxiang/blog/internal/blog/store"
+	"github.com/sjxiang/blog/pkg/auth"
 	"github.com/sjxiang/blog/pkg/db"
 	"github.com/sjxiang/blog/pkg/jwt"
 	"github.com/sjxiang/blog/pkg/middleware"
@@ -102,6 +103,11 @@ func run() error {
 	// 构建 store（包变量有点恶心，为了复用，忍了）
 	store := store.NewStore(db)
 	
+	// 构建授权器
+	authz, err := auth.NewAuthz(db)
+	if err != nil {
+		return err
+	}
 
 	// 设置 Gin 模式
 	gin.SetMode(runMode)
@@ -113,7 +119,7 @@ func run() error {
 	r.Use(mws...)
 
 	// 注册路由
-	if err := setupRoute(store, r); err != nil {
+	if err := setupRoute(authz, store, r); err != nil {
 		return err
 	}
 	

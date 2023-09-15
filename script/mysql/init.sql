@@ -26,7 +26,3 @@ CREATE TABLE `post` (
   UNIQUE KEY `postID` (`postID`),
   KEY `idx_username` (`username`)
 ) ENGINE=InnoDB AUTO_INCREMENT=141 DEFAULT CHARSET=utf8;
-
-
--- db2struct --gorm --no-json -H 127.0.0.1 -d miniblog -t user --package model --struct UserM -u miniblog -p 'miniblog1234' --target=user.go
-
